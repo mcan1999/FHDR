@@ -68,12 +68,9 @@ with torch.no_grad():
     for batch, data in enumerate(tqdm(data_loader, desc="Testing %")):
 
         input = data["ldr_image"].data.cuda()
-        ground_truth = data["hdr_image"].data.cuda()
 
         output = model(input)
 
-        # tonemapping ground truth image for PSNR-μ calculation
-        mu_tonemap_gt = mu_tonemap(ground_truth)
 
         output = output[-1]
 
@@ -92,35 +89,3 @@ with torch.no_grad():
                     batch, batch_ind
                 ),
             )
-            save_hdr_image(
-                img_tensor=ground_truth,
-                batch=batch_ind,
-                path="./test_results/gt_hdr_b_{}_{}.hdr".format(batch, batch_ind),
-            )
-
-            if opt.log_scores:
-                # calculating PSNR score
-                mse = mse_loss(
-                    mu_tonemap(output.data[batch_ind]), mu_tonemap_gt.data[batch_ind]
-                )
-                psnr = 10 * np.log10(1 / mse.item())
-
-                avg_psnr += psnr
-
-                generated = (
-                    np.transpose(output.data[batch_ind].cpu().numpy(), (1, 2, 0)) + 1
-                ) / 2.0
-                real = (
-                    np.transpose(ground_truth.data[batch_ind].cpu().numpy(), (1, 2, 0))
-                    + 1
-                ) / 2.0
-
-                # calculating SSIM score
-                ssim = structural_similarity(generated, real, multichannel=True)
-                avg_ssim += ssim
-
-if opt.log_scores:
-    print("===> Avg. PSNR: {:.4f} dB".format(avg_psnr / len(dataset)))
-    print("Avg SSIM -> " + str(avg_ssim / len(dataset)))
-
-print("Evaluation completed.")
