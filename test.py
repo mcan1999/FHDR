@@ -68,24 +68,19 @@ with torch.no_grad():
     for batch, data in enumerate(tqdm(data_loader, desc="Testing %")):
 
         input = data["ldr_image"].data.cuda()
+        path  = str(data["path"])
+
+        #Parse image name
+        imgName = path.split('/')[-1].split('.')[0]
 
         output = model(input)
-
-
         output = output[-1]
 
         for batch_ind in range(len(output.data)):
-
-            # saving results
-            save_ldr_image(
-                img_tensor=input,
-                batch=batch_ind,
-                path="./test_results/ldr_b_{}_{}.png".format(batch, batch_ind),
-            )
             save_hdr_image(
                 img_tensor=output,
                 batch=batch_ind,
-                path="./test_results/generated_hdr_b_{}_{}.hdr".format(
-                    batch, batch_ind
+                path="./test_results/{}.hdr".format(
+                    imgName
                 ),
             )
