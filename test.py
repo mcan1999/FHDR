@@ -14,6 +14,8 @@ from options import Options
 from util import make_required_directories, mu_tonemap, save_hdr_image, save_ldr_image
 from vgg import VGGLoss
 
+INPUT_PATH = "./dataset/test/LDR"
+
 # initialise options
 opt = Options().parse()
 
@@ -21,7 +23,7 @@ opt = Options().parse()
 # loading data
 # ======================================
 
-dataset = HDRDataset(mode="test", opt=opt)
+dataset = HDRDataset(mode="test", opt=opt, input_path = INPUT_PATH)
 data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
 print("Testing samples: ", len(dataset))
@@ -71,7 +73,7 @@ with torch.no_grad():
         path  = str(data["path"])
 
         #Parse image name
-        imgName = path.split('/')[-1].split('.')[0]
+        img_name = path.split('/')[-1].split('.')[0]
 
         output = model(input)
         output = output[-1]
@@ -81,6 +83,6 @@ with torch.no_grad():
                 img_tensor=output,
                 batch=batch_ind,
                 path="./test_results/{}.hdr".format(
-                    imgName
+                    img_name
                 ),
             )
